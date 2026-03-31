@@ -10,6 +10,6 @@ frontend/dist/
 
 # Env
 .env
-
+.env.example
 
 backend/requirements.txt
