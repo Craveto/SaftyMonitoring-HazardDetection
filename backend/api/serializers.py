@@ -3,8 +3,8 @@ import io
 
 from rest_framework import serializers
 
-from apps.hazards.models import HazardAlert
-from apps.incidents.models import Incident
+from apps.hazards.models import HazardAlert, HazardAlertHistory
+from apps.incidents.models import Incident, HazardReport
 from apps.sensors.models import SensorReading
 
 
@@ -34,7 +34,7 @@ class SensorReadingCsvUploadSerializer(serializers.Serializer):
         decoded = value.read().decode("utf-8")
         value.seek(0)
         reader = csv.DictReader(io.StringIO(decoded))
-        required = {"gas_level", "temperature", "pressure", "smoke_level", "location", "shift"}
+        required = {"gas_level", "temperature", "pressure", "smoke_level"}
         if not required.issubset(reader.fieldnames or []):
             raise serializers.ValidationError(f"CSV must include columns: {sorted(required)}")
         return value
@@ -67,7 +67,11 @@ class AlertStatusUpdateSerializer(serializers.Serializer):
 class IncidentCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Incident
-        fields = ["alert", "title", "summary", "status"]
+        fields = ["alert", "title", "summary", "status", "capa_status", "next_action"]
+        extra_kwargs = {
+            "capa_status": {"required": False},
+            "next_action": {"required": False, "allow_blank": True},
+        }
 
 
 class IncidentSerializer(serializers.ModelSerializer):
@@ -82,6 +86,28 @@ class IncidentSerializer(serializers.ModelSerializer):
             "title",
             "summary",
             "status",
+            "capa_status",
+            "next_action",
             "opened_at",
             "closed_at",
         ]
+
+
+class HazardReportCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HazardReport
+        fields = ["title", "description", "location", "severity", "reported_by"]
+        extra_kwargs = {
+            "reported_by": {"required": False, "allow_blank": True},
+        }
+
+
+class HazardReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HazardReport
+        fields = ["id", "title", "description", "location", "severity", "reported_by", "created_at"]
+
+class HazardAlertHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HazardAlertHistory
+        fields = ["id", "old_status", "new_status", "changed_at"]

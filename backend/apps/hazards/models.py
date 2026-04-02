@@ -24,3 +24,16 @@ class HazardAlert(models.Model):
 
     def __str__(self) -> str:
         return f"Alert {self.id} ({self.severity})"
+
+class HazardAlertHistory(models.Model):
+    alert = models.ForeignKey(HazardAlert, on_delete=models.CASCADE, related_name="history")
+    old_status = models.CharField(max_length=20, blank=True, default="")
+    new_status = models.CharField(max_length=20)
+    changed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "hazard_alert_history"
+        ordering = ["-changed_at"]
+
+    def __str__(self) -> str:
+        return f"Alert {self.alert_id} {self.old_status}->{self.new_status}"

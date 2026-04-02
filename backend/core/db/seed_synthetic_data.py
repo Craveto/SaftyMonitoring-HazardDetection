@@ -9,6 +9,8 @@ def generate(rows: int = 4000, out_csv: str = "backend/core/db/safety_monitoring
         "temperature": np.random.normal(60, 15, rows),
         "pressure": np.random.normal(200, 40, rows),
         "smoke_level": np.random.normal(5, 3, rows),
+        "location": np.random.choice(["Zone A", "Zone B", "Zone C"], rows),
+        "shift": np.random.choice(["Morning", "Afternoon", "Night"], rows),
     }
 
     df = pd.DataFrame(data)

@@ -4,6 +4,20 @@ from apps.hazards.services.alert_factory import AlertFactory
 from apps.sensors.models import SensorReading
 
 
+def _normalize_location(value: str) -> str:
+    clean = " ".join(str(value).replace("-", " ").split())
+    if clean.lower().startswith("zone"):
+        parts = clean.split()
+        if len(parts) >= 2:
+            return f"Zone {parts[1].upper()}"
+    return clean.title()
+
+
+def _normalize_shift(value: str) -> str:
+    clean = " ".join(str(value).replace("-", " ").split())
+    return clean.title()
+
+
 class SensorReadingService:
     def __init__(self, prediction_service):
         self.prediction_service = prediction_service
@@ -16,8 +30,8 @@ class SensorReadingService:
             temperature=payload["temperature"],
             pressure=payload["pressure"],
             smoke_level=payload["smoke_level"],
-            location=payload["location"],
-            shift=payload["shift"],
+            location=_normalize_location(payload.get("location", "Zone A")),
+            shift=_normalize_shift(payload.get("shift", "Day")),
             source_type=payload.get("source_type", "manual"),
             remarks=payload.get("remarks", ""),
             alarm=bool(prediction["alarm"]),
@@ -31,4 +45,3 @@ class SensorReadingService:
             "alert_id": alert.id if alert else None,
             **prediction,
         }
-
