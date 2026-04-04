@@ -37,6 +37,13 @@ export default function IncidentsPage() {
     fetchIncidents();
   };
 
+  const updateIncident = async (id, payload) => {
+    await api.patch(`/incidents/${id}`, payload);
+    setCache("incidents_list", null);
+    setCache("dashboard_summary", null);
+    fetchIncidents();
+  };
+
   const downloadPdf = async (id) => {
     const response = await api.get(`/incidents/${id}/pdf`, { responseType: "blob" });
     const url = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
@@ -52,7 +59,7 @@ export default function IncidentsPage() {
   return (
     <section className="panel p-5">
       <div className="flex items-center gap-3 mb-4">
-        <button className="back-btn" title="Back" aria-label="Back" onClick={() => navigate("/dashboard")}>
+        <button className="back-btn" title="Back" aria-label="Back" onClick={() => navigate("/dashboard", { replace: true, state: { scrollTo: "flow-cards" } })}>
           <BackIcon />
         </button>
         <div>
@@ -82,8 +89,28 @@ export default function IncidentsPage() {
                   <td>#{i.id}</td>
                   <td>{i.alert}</td>
                   <td>{i.title}</td>
-                  <td>{i.status}</td>
-                  <td>{i.capa_status}</td>
+                  <td>
+                    <select
+                      className="select-ui !py-1.5 !w-[150px]"
+                      value={i.status}
+                      onChange={(e) => updateIncident(i.id, { status: e.target.value })}
+                    >
+                      <option value="new">new</option>
+                      <option value="acknowledged">acknowledged</option>
+                      <option value="resolved">resolved</option>
+                    </select>
+                  </td>
+                  <td>
+                    <select
+                      className="select-ui !py-1.5 !w-[160px]"
+                      value={i.capa_status}
+                      onChange={(e) => updateIncident(i.id, { capa_status: e.target.value })}
+                    >
+                      <option value="open">Open</option>
+                      <option value="in_progress">In Progress</option>
+                      <option value="closed">Closed</option>
+                    </select>
+                  </td>
                   <td>{i.next_action || "-"}</td>
                   <td>{new Date(i.opened_at).toLocaleString()}</td>
                   <td><button className="btn-secondary !py-1.5 !text-xs" onClick={() => downloadPdf(i.id)}>PDF</button></td>
@@ -96,3 +123,4 @@ export default function IncidentsPage() {
     </section>
   );
 }
+

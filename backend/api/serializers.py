@@ -3,12 +3,14 @@ import io
 
 from rest_framework import serializers
 
-from apps.hazards.models import HazardAlert, HazardAlertHistory
+from apps.hazards.models import HazardAlert, HazardAlertHistory, PPEViolation
 from apps.incidents.models import Incident, HazardReport
 from apps.sensors.models import SensorReading
 
 
 class SensorReadingCreateSerializer(serializers.ModelSerializer):
+    source_type = serializers.ChoiceField(choices=["manual", "synthetic", "csv", "stream"], required=False)
+
     class Meta:
         model = SensorReading
         fields = [
@@ -24,6 +26,8 @@ class SensorReadingCreateSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "source_type": {"required": False},
             "remarks": {"required": False, "allow_blank": True},
+            "location": {"required": False},
+            "shift": {"required": False},
         }
 
 
@@ -111,3 +115,13 @@ class HazardAlertHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = HazardAlertHistory
         fields = ["id", "old_status", "new_status", "changed_at"]
+
+class PPEViolationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PPEViolation
+        fields = ["id", "media_type", "filename", "detected", "violation_type", "confidence", "status", "created_at"]
+
+
+class PPEViolationCreateSerializer(serializers.Serializer):
+    file = serializers.FileField()
+

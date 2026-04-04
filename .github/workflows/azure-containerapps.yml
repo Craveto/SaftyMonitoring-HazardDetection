@@ -1,0 +1,54 @@
+name: Build and Deploy to Azure Container Apps
+
+on:
+  push:
+    branches: ["main"]
+
+env:
+  ACR_NAME: ${{ secrets.ACR_NAME }}
+  RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+  CONTAINERAPPS_ENV: ${{ secrets.AZURE_CONTAINERAPPS_ENV }}
+  BACKEND_APP_NAME: ${{ secrets.AZURE_BACKEND_APP }}
+  FRONTEND_APP_NAME: ${{ secrets.AZURE_FRONTEND_APP }}
+  VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login to ACR
+        run: az acr login --name $ACR_NAME
+
+      - name: Build and push backend image
+        run: |
+          docker build -f backend/Dockerfile -t $ACR_NAME.azurecr.io/hazard-backend:${{ github.sha }} .
+          docker push $ACR_NAME.azurecr.io/hazard-backend:${{ github.sha }}
+
+      - name: Build and push frontend image
+        run: |
+          docker build -f frontend/Dockerfile \
+            --build-arg VITE_API_BASE_URL=$VITE_API_BASE_URL \
+            -t $ACR_NAME.azurecr.io/hazard-frontend:${{ github.sha }} .
+          docker push $ACR_NAME.azurecr.io/hazard-frontend:${{ github.sha }}
+
+      - name: Deploy backend container app
+        run: |
+          az containerapp update \
+            --name $BACKEND_APP_NAME \
+            --resource-group $RESOURCE_GROUP \
+            --image $ACR_NAME.azurecr.io/hazard-backend:${{ github.sha }}
+
+      - name: Deploy frontend container app
+        run: |
+          az containerapp update \
+            --name $FRONTEND_APP_NAME \
+            --resource-group $RESOURCE_GROUP \
+            --image $ACR_NAME.azurecr.io/hazard-frontend:${{ github.sha }}

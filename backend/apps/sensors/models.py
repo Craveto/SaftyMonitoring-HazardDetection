@@ -27,3 +27,5 @@ class SensorReading(models.Model):
     def __str__(self) -> str:
         return f"Reading {self.id} @ {self.location}"
 
+
+

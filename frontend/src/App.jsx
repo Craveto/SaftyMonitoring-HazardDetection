@@ -7,6 +7,8 @@ import UploadCsvPage from "./pages/UploadCsvPage";
 import AlertsPage from "./pages/AlertsPage";
 import IncidentsPage from "./pages/IncidentsPage";
 import AdminSettingsPage from "./pages/AdminSettingsPage";
+import VisionPPEPage from "./pages/VisionPPEPage";
+import LiveStreamPage from "./pages/LiveStreamPage";
 
 export default function App() {
   return (
@@ -19,6 +21,8 @@ export default function App() {
         <Route path="/alerts" element={<AlertsPage />} />
         <Route path="/incidents" element={<IncidentsPage />} />
         <Route path="/admin-settings" element={<AdminSettingsPage />} />
+        <Route path="/vision-ppe" element={<VisionPPEPage />} />
+        <Route path="/live-stream" element={<LiveStreamPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

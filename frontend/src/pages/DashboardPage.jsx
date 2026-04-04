@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Bar, BarChart, CartesianGrid, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell } from "recharts";
 import api from "../api/client";
 import { getCache, setCache } from "../api/cache";
@@ -20,6 +20,30 @@ const flowCards = [
   { title: "Alerts", desc: "Alerts are stored and shown on the dashboard.", route: "/alerts", icon: "AL" },
   { title: "Incidents & CAPA", desc: "Teams investigate and track corrective actions.", route: "/incidents", icon: "IC" },
   { title: "Hazard Reports", desc: "Log hazards and near-misses for review.", route: "/admin-settings", icon: "HR" },
+  { title: "Vision PPE", desc: "Simulated CV checks create PPE violation alerts.", route: "/vision-ppe", icon: "CV" },
+  { title: "Live Stream", desc: "Simulated IoT stream sends readings every 5 seconds.", route: "/live-stream", icon: "LT" },
+];
+
+const lifecycleSteps = [
+  { title: "Identify Hazards", desc: "Locate hazards and assess risk severity.", impl: "Sensors + manual inputs identify hazards and assign severity." },
+  { title: "Develop Procedures", desc: "Create safety procedures and train teams.", impl: "Procedures are attached to alerts and shared in the steps guide." },
+  { title: "Implement Controls", desc: "Apply engineering, admin, and PPE controls.", impl: "Controls are enforced through alert actions and CAPA tracking." },
+  { title: "Monitor & Review", desc: "Track effectiveness and update alerts.", impl: "Dashboards and SLA timers monitor response effectiveness." },
+  { title: "Continuous Improvement", desc: "Iterate based on incidents and KPIs.", impl: "KPIs, audit trails, and lessons learned drive improvements." },
+];
+
+const techHighlights = [
+  { title: "AI + Computer Vision", desc: "Detect PPE noncompliance and unsafe behaviors from video streams.", impl: "Model-ready pipeline; can integrate CV (YOLOv8) as Phase‑2 alert source." },
+  { title: "IoT Sensors", desc: "Gas, temperature, vibration, and smoke sensors feed live readings.", impl: "Current sensor ingestion + CSV upload emulate IoT feeds." },
+  { title: "Wearables", desc: "Track worker vitals and location for confined-space safety.", impl: "Hazard report form can accept wearable inputs in future." },
+  { title: "Edge Computing", desc: "Analyze data near the source to reduce alert latency.", impl: "Rule engine runs instantly; can deploy at edge for lower latency." },
+];
+
+const glossaryItems = [
+  { term: "Hazard", def: "A source or situation with potential to cause harm." },
+  { term: "Risk", def: "Likelihood and severity of harm from a hazard." },
+  { term: "Near-Miss", def: "An unplanned event that did not result in injury." },
+  { term: "CAPA", def: "Corrective and Preventive Action to prevent recurrence." },
 ];
 
 const breadcrumbMap = {
@@ -33,6 +57,9 @@ const breadcrumbMap = {
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const flowRef = useRef(null);
+  const flowCardsRef = useRef(null);
   const [data, setData] = useState({
     active_alerts: 0,
     open_incidents: 0,
@@ -53,6 +80,8 @@ export default function DashboardPage() {
   const [showSteps, setShowSteps] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
   const [demoNotice, setDemoNotice] = useState("");
+  const [activeLifecycle, setActiveLifecycle] = useState(0);
+  const [activeTech, setActiveTech] = useState(0);
 
   useEffect(() => {
     const load = async () => {
@@ -79,6 +108,16 @@ export default function DashboardPage() {
     const interval = setInterval(load, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const shouldScrollToCards =
+      location.hash === "#flow" || location.state?.scrollTo === "flow-cards";
+    if (shouldScrollToCards && flowCardsRef.current) {
+      setTimeout(() => {
+        flowCardsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 50);
+    }
+  }, [location.hash, location.state]);
 
   const loadDemoData = async () => {
     setDemoLoading(true);
@@ -128,7 +167,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="panel p-5">
+      <div ref={flowRef} id="flow-section" className="panel p-5 same-panel">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Safety Monitoring Platform</p>
@@ -184,7 +223,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="panel p-5">
+      <div className="panel p-5 same-panel">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Implementation Flow</p>
@@ -218,7 +257,7 @@ export default function DashboardPage() {
         )}
 
         <div className="grid gap-4 lg:grid-cols-2 mt-4">
-          <div className="flow-card">
+          <div className="flow-card static-card">
             <div className="section-title">Sensor Health</div>
             <p className="text-sm text-slate-600">Last reading: {data.last_reading_at ? new Date(data.last_reading_at).toLocaleString() : "--"}</p>
             <div className="mt-3 flex items-center gap-4 text-sm">
@@ -233,7 +272,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="flow-card">
+          <div className="flow-card static-card">
             <div className="section-title">Top Risk Zones</div>
             {data.top_risk_zones?.length ? (
               <div className="space-y-2 mt-2">
@@ -250,7 +289,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 mt-4">
+        <div ref={flowCardsRef} className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 mt-4">
           {flowCards.map((card) => (
             <div key={card.title} className="flow-card" onClick={() => navigate(card.route)}>
               <div className="flow-icon">{card.icon}</div>
@@ -258,6 +297,86 @@ export default function DashboardPage() {
               <p className="text-sm text-slate-600">{card.desc}</p>
             </div>
           ))}
+        </div>
+      </div>
+
+      <div className="panel p-5 same-panel">
+        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Safety Lifecycle</p>
+        <h3 className="text-lg font-semibold">From hazard identification to continuous improvement</h3>
+        <p className="text-sm text-slate-600 mt-1">This is the operating model your dashboard supports.</p>
+        <div className="info-grid mt-4">
+          {lifecycleSteps.map((step, idx) => (
+            <button
+              key={step.title}
+              className={`info-card interactive-card ${activeLifecycle === idx ? "active" : ""}`}
+              onClick={() => setActiveLifecycle(idx)}
+            >
+              <div className="info-tag">Step {idx + 1}</div>
+              <div className="section-title">{step.title}</div>
+              <p className="text-sm text-slate-600">{step.desc}</p>
+            </button>
+          ))}
+        </div>
+        <div className="detail-panel mt-4">
+          <div className="section-title">How this maps to your system</div>
+          <p className="text-sm text-slate-600 mt-1">{lifecycleSteps[activeLifecycle]?.impl}</p>
+        </div>
+      </div>
+
+      <div className="panel p-5 same-panel">
+        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Key Technologies</p>
+        <h3 className="text-lg font-semibold">What powers modern hazard detection</h3>
+        <p className="text-sm text-slate-600 mt-1">These are typical production-grade components mapped to your system.</p>
+        <div className="info-grid mt-4">
+          {techHighlights.map((item, idx) => (
+            <button
+              key={item.title}
+              className={`info-card interactive-card ${activeTech === idx ? "active" : ""}`}
+              onClick={() => setActiveTech(idx)}
+            >
+              <div className="section-title">{item.title}</div>
+              <p className="text-sm text-slate-600">{item.desc}</p>
+            </button>
+          ))}
+        </div>
+        <div className="detail-panel mt-4">
+          <div className="section-title">Implementation in this project</div>
+          <p className="text-sm text-slate-600 mt-1">{techHighlights[activeTech]?.impl}</p>
+        </div>
+      </div>
+
+      <div className="panel p-5 same-panel">
+        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Glossary & Best Practices</p>
+        <h3 className="text-lg font-semibold">Terms and frameworks users should understand</h3>
+        <div className="grid gap-4 lg:grid-cols-2 mt-4">
+          <div className="info-card">
+            <div className="section-title">Key Terms</div>
+            <div className="space-y-3 mt-3">
+              {glossaryItems.map((item) => (
+                <div key={item.term}>
+                  <div className="text-sm font-semibold">{item.term}</div>
+                  <div className="text-sm text-slate-600">{item.def}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="info-card">
+            <div className="section-title">Frameworks to Reference</div>
+            <div className="space-y-3 mt-3 text-sm text-slate-600">
+              <div>
+                <div className="text-sm font-semibold">Hierarchy of Controls</div>
+                <div>Eliminate, substitute, engineer, administrate, then PPE — used to reduce risk systematically.</div>
+              </div>
+              <div>
+                <div className="text-sm font-semibold">PDCA Cycle</div>
+                <div>Plan, Do, Check, Act — continuous improvement loop used in safety management systems.</div>
+              </div>
+              <div>
+                <div className="text-sm font-semibold">Incident Investigation</div>
+                <div>Find root causes and prevent recurrence with CAPA actions.</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

@@ -140,6 +140,8 @@ h1,h2,h3,h4 { font-family: "Space Grotesk", "IBM Plex Sans", sans-serif; letter-
 }
 
 .flow-card:hover { transform: translateY(-2px); border-color: #b9cff8; box-shadow: 0 10px 20px -16px #1d4ed8; }
+.flow-card.static-card { cursor: default; }
+.flow-card.static-card:hover { transform: none; border-color: #e1e9fb; box-shadow: none; }
 
 .flow-icon {
   width: 28px;
@@ -291,3 +293,72 @@ chip-count {
   padding: 4px 8px;
   border-radius: 999px;
 }
+.info-grid {
+  display: grid;gap: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.info-card {
+  border: 1px solid #e1e9fb;
+  border-radius: 14px;
+  padding: 0.9rem;
+  background: #f9fbff;
+}
+
+.info-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #1a58b8;
+  background: #e8f0ff;
+  border-radius: 999px;
+  padding: 3px 8px;
+  margin-bottom: 0.4rem;
+}
+
+
+
+
+.same-panel {
+  min-height: 520px;
+}
+
+.interactive-card {
+  text-align: left;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.interactive-card.active {
+  border-color: #9cc0ff;
+  box-shadow: 0 16px 28px -22px #1d4ed8;
+  transform: translateY(-2px);
+}
+
+.detail-panel {
+  border: 1px dashed #cfe0ff;
+  background: #f8fbff;
+  border-radius: 12px;
+  padding: 0.8rem 1rem;
+  animation: fadeIn 0.25s ease;
+}
+
+
+
+
+
+
+
+
+.filter-bar {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  align-items: end;
+  margin-bottom: 0.9rem;
+}
+
+.filter-group {
+  display: grid;
+  gap: 0.35rem;
+}
+

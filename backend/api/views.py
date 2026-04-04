@@ -1,6 +1,8 @@
 import csv
 import io
 from datetime import timedelta
+import hashlib
+import random
 
 import numpy as np
 import pandas as pd
@@ -15,7 +17,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.hazards.models import HazardAlert, HazardAlertHistory
+from apps.hazards.models import HazardAlert, HazardAlertHistory, PPEViolation
 from apps.hazards.services.prediction_service import PredictionService
 from apps.hazards.services.risk_scoring_engine import RiskScoringEngine
 from apps.incidents.models import Incident, HazardReport
@@ -30,7 +32,7 @@ from .serializers import (
     SensorReadingCsvUploadSerializer,
     HazardReportCreateSerializer,
     HazardReportSerializer,
-    HazardAlertHistorySerializer,
+    HazardAlertHistorySerializer,    PPEViolationSerializer,    PPEViolationCreateSerializer,
 )
 
 def _normalize_location(value: str) -> str:
@@ -197,6 +199,32 @@ class IncidentListCreateAPIView(APIView):
         return Response(IncidentSerializer(incident).data, status=status.HTTP_201_CREATED)
 
 
+class IncidentUpdateAPIView(APIView):
+    def patch(self, request, incident_id: int):
+        try:
+            incident = Incident.objects.get(pk=incident_id)
+        except Incident.DoesNotExist:
+            return Response({"detail": "Incident not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        status_value = request.data.get("status")
+        capa_value = request.data.get("capa_status")
+        next_action = request.data.get("next_action")
+
+        if status_value:
+            incident.status = status_value
+            if status_value == "resolved":
+                incident.closed_at = timezone.now()
+        if capa_value:
+            incident.capa_status = capa_value
+            if capa_value == "closed":
+                incident.status = "resolved"
+                incident.closed_at = timezone.now()
+        if next_action is not None:
+            incident.next_action = next_action
+
+        incident.save()
+        return Response(IncidentSerializer(incident).data)
+
 class HazardReportListCreateAPIView(APIView):
     def get(self, request):
         serializer = HazardReportSerializer(HazardReport.objects.all()[:100], many=True)
@@ -208,6 +236,41 @@ class HazardReportListCreateAPIView(APIView):
         report = serializer.save()
         return Response(HazardReportSerializer(report).data, status=status.HTTP_201_CREATED)
 
+
+class PPEViolationListCreateAPIView(APIView):
+    def get(self, request):
+        violations = PPEViolation.objects.all()[:200]
+        serializer = PPEViolationSerializer(violations, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = PPEViolationCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        file_obj = serializer.validated_data["file"]
+        filename = file_obj.name
+        media_type = file_obj.content_type or "application/octet-stream"
+        raw = file_obj.read()
+        file_obj.seek(0)
+
+        digest = hashlib.md5(raw).hexdigest()
+        seed = int(digest[:8], 16)
+        random.seed(seed)
+
+        keyword_hit = any(k in filename.lower() for k in ["unsafe", "nohelmet", "noppe", "violation"])
+        detected = keyword_hit or random.random() < 0.35
+        violation_type = "helmet_missing" if detected else "none"
+        confidence = round((0.7 + random.random() * 0.25), 2) if detected else round((0.2 + random.random() * 0.2), 2)
+
+        violation = PPEViolation.objects.create(
+            media_type=media_type,
+            filename=filename,
+            detected=detected,
+            violation_type=violation_type,
+            confidence=confidence,
+            status="open" if detected else "resolved",
+        )
+
+        return Response(PPEViolationSerializer(violation).data, status=status.HTTP_201_CREATED)
 
 class DemoDataCreateAPIView(APIView):
     def post(self, request):
@@ -432,6 +495,10 @@ class DashboardSummaryAPIView(APIView):
                 "anomaly_message": anomaly_message,
             }
         )
+
+
+
+
 
 
 

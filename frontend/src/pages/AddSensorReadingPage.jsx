@@ -39,7 +39,7 @@ export default function AddSensorReadingPage() {
   return (
     <section className="panel p-5">
       <div className="flex items-center gap-3 mb-4">
-        <button className="back-btn" title="Back" aria-label="Back" onClick={() => navigate("/dashboard")}>
+        <button className="back-btn" title="Back" aria-label="Back" onClick={() => navigate("/dashboard", { replace: true, state: { scrollTo: "flow-cards" } })}>
           <BackIcon />
         </button>
         <div>

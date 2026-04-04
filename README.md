@@ -48,3 +48,60 @@ Typical output (example):
 
 ## Architecture Flow
 See `docs/flow.md` for the system flow diagram.
+
+## Deploy (Azure Container Apps + GitHub Actions)
+
+### 1) Create Azure resources
+```
+az group create -n hazard-rg -l eastus
+az acr create -n <acr-name> -g hazard-rg --sku Basic
+az containerapp env create -n hazard-env -g hazard-rg -l eastus
+```
+
+### 2) Create container apps (first time)
+```
+az containerapp create -n hazard-backend -g hazard-rg --environment hazard-env \
+  --image <acr-name>.azurecr.io/hazard-backend:latest --target-port 8000 --ingress external
+
+az containerapp create -n hazard-frontend -g hazard-rg --environment hazard-env \
+  --image <acr-name>.azurecr.io/hazard-frontend:latest --target-port 80 --ingress external
+```
+
+### 3) Configure backend environment variables
+Set these in the Azure Portal or CLI for the backend container app:
+- `DEBUG=False`
+- `SECRET_KEY=<your-secret>`
+- `ALLOWED_HOSTS=<backend-app-url>`
+- `DB_ENGINE=mssql`
+- `DB_NAME=<db>`
+- `DB_USER=<user>`
+- `DB_PASSWORD=<password>`
+- `DB_HOST=<server>.database.windows.net`
+- `DB_PORT=1433`
+- `MODEL_PATH=/app/core/ml/artifacts/hazard_rf.joblib`
+
+### 4) Add GitHub Secrets
+Repo ? Settings ? Secrets and variables ? Actions:
+- `AZURE_CREDENTIALS` (service principal JSON)
+- `ACR_NAME`
+- `AZURE_RESOURCE_GROUP`
+- `AZURE_CONTAINERAPPS_ENV`
+- `AZURE_BACKEND_APP`
+- `AZURE_FRONTEND_APP`
+- `VITE_API_BASE_URL` (backend URL, e.g. `https://hazard-backend.<region>.azurecontainerapps.io/api/v1`)
+
+Create service principal:
+```
+az ad sp create-for-rbac \
+  --name hazard-sp \
+  --role contributor \
+  --scopes /subscriptions/<SUBSCRIPTION_ID>/resourceGroups/hazard-rg \
+  --sdk-auth
+```
+
+### 5) Push to main
+Push to `main` to build, push, and deploy via GitHub Actions.
+
+### 6) Verify
+- Backend health: open `/api/v1/dashboard/summary`
+- Frontend loads and hits API

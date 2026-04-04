@@ -21,6 +21,7 @@ export default function AlertsPage() {
   const [auditItems, setAuditItems] = useState([]);
   const [auditAlert, setAuditAlert] = useState(null);
   const [auditLoading, setAuditLoading] = useState(false);
+  const [filters, setFilters] = useState({ severity: "all", status: "all", query: "" });
 
   const fetchAlerts = async () => {
     const cached = getCache("alerts_list", 2 * 60 * 1000);
@@ -92,6 +93,14 @@ export default function AlertsPage() {
     return "Monitor and record next reading";
   };
 
+  const filteredAlerts = alerts.filter((a) => {
+    const severityOk = filters.severity === "all" || a.severity === filters.severity;
+    const statusOk = filters.status === "all" || a.status === filters.status;
+    const q = filters.query.trim().toLowerCase();
+    const queryOk = !q || `${a.reading_location} ${a.reading_shift} ${a.rule_triggered}`.toLowerCase().includes(q);
+    return severityOk && statusOk && queryOk;
+  });
+
   return (
     <section className="panel p-5">
       {auditOpen && (
@@ -134,7 +143,7 @@ export default function AlertsPage() {
         </div>
       )}
       <div className="flex items-center gap-3 mb-4">
-        <button className="back-btn" title="Back" aria-label="Back" onClick={() => navigate("/dashboard")}>
+        <button className="back-btn" title="Back" aria-label="Back" onClick={() => navigate("/dashboard", { replace: true, state: { scrollTo: "flow-cards" } })}>
           <BackIcon />
         </button>
         <div>
@@ -144,6 +153,32 @@ export default function AlertsPage() {
       </div>
 
       {toast && <div className="mb-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">{toast}</div>}
+
+      <div className="filter-bar">
+        <div className="filter-group">
+          <label className="text-xs text-slate-500">Severity</label>
+          <select className="select-ui !py-1.5 !w-[160px]" value={filters.severity} onChange={(e) => setFilters((p) => ({ ...p, severity: e.target.value }))}>
+            <option value="all">All</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+        <div className="filter-group">
+          <label className="text-xs text-slate-500">Status</label>
+          <select className="select-ui !py-1.5 !w-[160px]" value={filters.status} onChange={(e) => setFilters((p) => ({ ...p, status: e.target.value }))}>
+            <option value="all">All</option>
+            <option value="new">New</option>
+            <option value="acknowledged">Acknowledged</option>
+            <option value="resolved">Resolved</option>
+          </select>
+        </div>
+        <div className="filter-group flex-1">
+          <label className="text-xs text-slate-500">Search</label>
+          <input className="input-ui !py-1.5" placeholder="Search zone, shift, trigger..." value={filters.query} onChange={(e) => setFilters((p) => ({ ...p, query: e.target.value }))} />
+        </div>
+      </div>
 
       <div className="flex flex-wrap gap-2 text-xs text-slate-600 mb-3">
         <span className="status-chip status-critical">Critical <span className="chip-count">{severityCount.critical}</span></span>
@@ -159,7 +194,7 @@ export default function AlertsPage() {
         <table className="data-table min-w-[1180px]">
           <thead><tr><th>ID</th><th>Location</th><th>Shift</th><th>Severity</th><th>Risk</th><th>Status</th><th>SLA</th><th>Triggers</th><th>Recommended Action</th><th>Audit</th><th>Action</th></tr></thead>
           <tbody>
-            {loading ? <tr><td colSpan={11} className="text-center py-8 text-slate-500">Loading alerts...</td></tr> : alerts.length === 0 ? <tr><td colSpan={11} className="text-center py-8 text-slate-500">No alerts yet.</td></tr> : alerts.map((a) => (
+            {loading ? <tr><td colSpan={11} className="text-center py-8 text-slate-500">Loading alerts...</td></tr> : filteredAlerts.length === 0 ? <tr><td colSpan={11} className="text-center py-8 text-slate-500">No alerts match current filters.</td></tr> : filteredAlerts.map((a) => (
               <tr key={a.id}>
                 <td>#{a.id}</td><td>{a.reading_location}</td><td className="capitalize">{a.reading_shift}</td>
                 <td><span className={`status-chip ${severityClass(a.severity)}`}>{a.severity}</span></td>
@@ -178,3 +213,4 @@ export default function AlertsPage() {
     </section>
   );
 }
+

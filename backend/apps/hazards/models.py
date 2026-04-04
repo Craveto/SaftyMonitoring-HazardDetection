@@ -37,3 +37,25 @@ class HazardAlertHistory(models.Model):
 
     def __str__(self) -> str:
         return f"Alert {self.alert_id} {self.old_status}->{self.new_status}"
+
+class PPEViolation(models.Model):
+    STATUS_CHOICES = (
+        ("open", "Open"),
+        ("acknowledged", "Acknowledged"),
+        ("resolved", "Resolved"),
+    )
+
+    media_type = models.CharField(max_length=30)
+    filename = models.CharField(max_length=255)
+    detected = models.BooleanField(default=False)
+    violation_type = models.CharField(max_length=60, blank=True, default="none")
+    confidence = models.FloatField(default=0.0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="open")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "ppe_violations"
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"PPEViolation {self.id} {self.violation_type}"
