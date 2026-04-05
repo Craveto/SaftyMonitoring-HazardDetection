@@ -14,4 +14,4 @@ frontend/dist/
 
 .env.example   
 
-backend/requirements.txt
+# backend/requirements.txt
