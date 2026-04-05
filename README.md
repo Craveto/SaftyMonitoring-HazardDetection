@@ -105,3 +105,32 @@ Push to `main` to build, push, and deploy via GitHub Actions.
 ### 6) Verify
 - Backend health: open `/api/v1/dashboard/summary`
 - Frontend loads and hits API
+
+## Deploy (Azure App Service + Static Web Apps)
+
+### Backend (Django) – Azure App Service
+1. Create App Service (Linux, Python 3.12) and connect GitHub repo.
+2. In App Service ? Configuration ? Application settings, add:
+   - `DEBUG=False`
+   - `SECRET_KEY=<your-secret>`
+   - `ALLOWED_HOSTS=<your-backend-app>.azurewebsites.net`
+   - `DB_ENGINE=mssql`
+   - `DB_NAME=<db>`
+   - `DB_USER=<user>`
+   - `DB_PASSWORD=<password>`
+   - `DB_HOST=<server>.database.windows.net`
+   - `DB_PORT=1433`
+   - `MODEL_PATH=/home/site/wwwroot/core/ml/artifacts/hazard_rf.joblib`
+3. In App Service ? Configuration ? General settings, set Startup Command:
+   - `gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2`
+4. Add GitHub secret `AZURE_BACKEND_PUBLISH_PROFILE` and `AZURE_BACKEND_APP`.
+5. Push to `main` to deploy.
+
+### Frontend (React) – Azure Static Web Apps
+1. Create Static Web App and connect GitHub repo.
+2. Build settings:
+   - App location: `frontend`
+   - Output location: `dist`
+3. Add GitHub secret `AZURE_SWA_TOKEN`.
+4. Set app setting `VITE_API_BASE_URL` to backend URL (…/api/v1).
+5. Push to `main` to deploy.
