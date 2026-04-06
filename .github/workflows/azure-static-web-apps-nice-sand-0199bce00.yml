@@ -31,7 +31,9 @@ jobs:
           app_location: "./frontend" # App source code path
           api_location: "" # Api source code path - optional
           output_location: "dist" # Built app content directory - optional
-          ###### End of Repository/Build Configurations ######\n        env:\n          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          ###### End of Repository/Build Configurations ######
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
