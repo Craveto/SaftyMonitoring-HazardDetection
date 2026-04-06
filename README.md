@@ -2,6 +2,7 @@
 
 A production-style safety monitoring web app that turns sensor data into actionable alerts, incidents, and CAPA workflows so teams can prevent hazards before they escalate.
 
+live at [Live](https://nice-sand-0199bce00.7.azurestaticapps.net/)
 ## Why This Application
 Industrial safety teams need a single place to ingest sensor data, detect hazards, and track corrective actions. This project simulates a real plant safety workflow with:
 - real-time rule-based alarms
@@ -24,28 +25,21 @@ Industrial safety teams need a single place to ingest sensor data, detect hazard
 Add screenshots here for future reference:
 
 **Landing / Dashboard**
-![Dashboard](docs/screenshots/dashboard.png)
+![Dashboard](image.png)
 
 **Add Sensor Reading**
-![Add Reading](docs/screenshots/add-reading.png)
+![Add Sensor](image-2.png)
+
 
 **Upload CSV**
-![Upload CSV](docs/screenshots/upload-csv.png)
+![Upload CSV](image-3.png)
 
 **Alerts**
-![Alerts](docs/screenshots/alerts.png)
+![Alerts](image-4.png)
 
 **Incidents + CAPA**
-![Incidents](docs/screenshots/incidents.png)
+![Incidents](image-5.png)
 
-**AI/CV PPE Check**
-![PPE Check](docs/screenshots/ppe-check.png)
-
-**Live IoT Stream**
-![IoT Stream](docs/screenshots/live-stream.png)
-
-**Hazard Report**
-![Hazard Report](docs/screenshots/hazard-report.png)
 
 ---
 
@@ -84,7 +78,7 @@ Add screenshots here for future reference:
 ### 6) Hazard Reports
 - Report hazards and near-misses
 - Guided templates for fast entry
-- “What happens next” panel for clarity
+- ï¿½What happens nextï¿½ panel for clarity
 
 ### 7) AI/CV PPE Check (Simulation)
 - Upload media ? run simulated PPE check
@@ -135,7 +129,7 @@ SELECT TOP 5 *
 FROM sensor_readings
 ORDER BY [timestamp] DESC;
 ```
-
+![Azure sql editor from saftey_monitering sql database](image-6.png)
 ---
 
 ## ML Training Note
@@ -155,7 +149,7 @@ See `docs/flow.md` for the system flow diagram.
 
 ## Deploy (Azure App Service + Static Web Apps)
 
-### Backend (Django) – Azure App Service
+### Backend (Django) ï¿½ Azure App Service
 1. Create App Service (Linux, Python 3.12) and connect GitHub repo.
 2. In App Service ? Configuration ? Application settings, add:
    - `DEBUG=False`
@@ -173,13 +167,13 @@ See `docs/flow.md` for the system flow diagram.
 4. Add GitHub secrets: `AZURE_BACKEND_PUBLISH_PROFILE`, `AZURE_BACKEND_APP`.
 5. Push to `main` to deploy.
 
-### Frontend (React) – Azure Static Web Apps
+### Frontend (React) ï¿½ Azure Static Web Apps
 1. Create Static Web App and connect GitHub repo.
 2. Build settings:
    - App location: `frontend`
    - Output location: `dist`
 3. Add GitHub secret `AZURE_SWA_TOKEN`.
-4. Set app setting `VITE_API_BASE_URL` to backend URL (…/api/v1).
+4. Set app setting `VITE_API_BASE_URL` to backend URL (ï¿½/api/v1).
 5. Push to `main` to deploy.
 
 ---
@@ -202,5 +196,4 @@ frontend/src/pages/   Application screens
 
 ---
 
-## License
-MIT (or update if required)
+
