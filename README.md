@@ -2,7 +2,7 @@
 
 A production-style safety monitoring web app that turns sensor data into actionable alerts, incidents, and CAPA workflows so teams can prevent hazards before they escalate.
 
-live at [Live](https://nice-sand-0199bce00.7.azurestaticapps.net/)
+ [Click to see project Live](https://nice-sand-0199bce00.7.azurestaticapps.net)
 ## Why This Application
 Industrial safety teams need a single place to ingest sensor data, detect hazards, and track corrective actions. This project simulates a real plant safety workflow with:
 - real-time rule-based alarms
