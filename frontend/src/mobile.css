@@ -1,0 +1,40 @@
+@media (max-width: 1024px) {
+  .page-container { padding: 0.9rem; }
+  .navbar { flex-direction: column; align-items: flex-start; gap: 0.6rem; }
+  .brand { width: 100%; justify-content: flex-start; }
+  .nav-links { width: 100%; justify-content: flex-start; }
+  .hero-illustration { margin: 0 auto; }
+  .panel.p-5 { padding: 1rem; }
+  .panel.p-4 { padding: 0.9rem; }
+  .modal-card { padding: 1rem; }
+}
+
+@media (max-width: 768px) {
+  .navbar { align-items: stretch; }
+  .brand { justify-content: flex-start; }
+  .brand-sub { font-size: 0.6rem; letter-spacing: 0.18em; }
+  .nav-links { gap: 0.35rem; }
+  .nav-pill { flex: 1 1 auto; text-align: center; }
+  .hero-title { font-size: 1.35rem; }
+  .hero-sub { font-size: 0.85rem; }
+  .metric-strip { grid-template-columns: 1fr; }
+  .flow-card { padding: 0.75rem; }
+  .info-grid { grid-template-columns: 1fr; }
+  .filter-bar { grid-template-columns: 1fr; }
+  .table-scroll { max-height: 360px; }
+  .data-table { min-width: 560px; }
+  .back-btn { width: 36px; height: 36px; }
+  .steps-btn { width: 100%; justify-content: center; }
+  .btn-primary, .btn-secondary, .quick-toggle-btn { width: 100%; justify-content: center; }
+  .page-illustration { width: 64px; height: 64px; }
+  .card-icon { width: 42px; height: 42px; }
+}
+
+@media (max-width: 520px) {
+  .page-container { padding: 0.75rem; }
+  .hero-title { font-size: 1.2rem; }
+  .metric-value { font-size: 1.35rem; }
+  .steps-dot { width: 16px; height: 16px; font-size: 0.65rem; }
+  .nav-pill { font-size: 0.75rem; padding: 0.34rem 0.6rem; }
+  .modal-card { width: 94vw; }
+}

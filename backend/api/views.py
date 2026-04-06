@@ -75,6 +75,8 @@ class SensorReadingCsvUploadAPIView(APIView):
             df["location"] = "Zone A"
         if "shift" not in df.columns:
             df["shift"] = "Day"
+        if "timestamp" in df.columns:
+            df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
 
         df["location"] = df["location"].apply(_normalize_location)
         df["shift"] = df["shift"].apply(_normalize_shift)
@@ -86,31 +88,56 @@ class SensorReadingCsvUploadAPIView(APIView):
         )
         df["alarm"] = alarm_series.astype(int)
 
-        start_time = timezone.now()
         readings = []
+        fingerprints = []
+        seen = set()
         for row in df.itertuples(index=False):
+            ts = getattr(row, "timestamp", None)
+            if pd.isna(ts):
+                ts = None
+            payload = {
+                "timestamp": ts or "",
+                "gas_level": float(row.gas_level),
+                "temperature": float(row.temperature),
+                "pressure": float(row.pressure),
+                "smoke_level": float(row.smoke_level),
+                "location": str(row.location),
+                "shift": str(row.shift),
+                "source_type": "csv",
+            }
+            fingerprint = SensorReading.build_fingerprint(payload)
+            if fingerprint in seen:
+                continue
+            seen.add(fingerprint)
+            fingerprints.append(fingerprint)
             readings.append(
                 SensorReading(
-                    gas_level=float(row.gas_level),
-                    temperature=float(row.temperature),
-                    pressure=float(row.pressure),
-                    smoke_level=float(row.smoke_level),
-                    location=str(row.location),
-                    shift=str(row.shift),
+                    timestamp=ts,
+                    gas_level=payload["gas_level"],
+                    temperature=payload["temperature"],
+                    pressure=payload["pressure"],
+                    smoke_level=payload["smoke_level"],
+                    location=payload["location"],
+                    shift=payload["shift"],
                     source_type="csv",
                     remarks="",
                     alarm=bool(row.alarm),
                     predicted_risk_score=90.0 if row.alarm else 10.0,
+                    fingerprint=fingerprint,
                 )
             )
 
         with transaction.atomic():
-            SensorReading.objects.bulk_create(readings, batch_size=500)
+            existing = set(
+                SensorReading.objects.filter(fingerprint__in=fingerprints).values_list("fingerprint", flat=True)
+            )
+            insert_readings = [r for r in readings if r.fingerprint not in existing]
+            insert_fps = [r.fingerprint for r in insert_readings]
+            SensorReading.objects.bulk_create(insert_readings, batch_size=500, ignore_conflicts=True)
 
             alarm_readings = SensorReading.objects.filter(
-                source_type="csv",
+                fingerprint__in=insert_fps,
                 alarm=True,
-                timestamp__gte=start_time,
             )
 
             alert_objs = []
@@ -138,7 +165,7 @@ class SensorReadingCsvUploadAPIView(APIView):
             if alert_objs:
                 HazardAlert.objects.bulk_create(alert_objs, batch_size=500)
 
-        return Response({"inserted": len(readings)}, status=status.HTTP_201_CREATED)
+        return Response({"inserted": len(insert_readings), "skipped_duplicates": len(readings) - len(insert_readings)}, status=status.HTTP_201_CREATED)
 
 
 class AlertListAPIView(APIView):
@@ -289,7 +316,24 @@ class DemoDataCreateAPIView(APIView):
         alarm_flags = (gas > 250) | (smoke > 15) | (temperature > 90)
 
         readings = []
+        fingerprints = []
+        seen = set()
         for i in range(rows):
+            payload = {
+                "timestamp": timestamps[i],
+                "gas_level": float(gas[i]),
+                "temperature": float(temperature[i]),
+                "pressure": float(pressure[i]),
+                "smoke_level": float(smoke[i]),
+                "location": str(locations[i]),
+                "shift": str(shifts[i]),
+                "source_type": "synthetic",
+            }
+            fingerprint = SensorReading.build_fingerprint(payload)
+            if fingerprint in seen:
+                continue
+            seen.add(fingerprint)
+            fingerprints.append(fingerprint)
             readings.append(
                 SensorReading(
                     timestamp=timestamps[i],
@@ -303,18 +347,21 @@ class DemoDataCreateAPIView(APIView):
                     remarks="demo load",
                     alarm=bool(alarm_flags[i]),
                     predicted_risk_score=90.0 if alarm_flags[i] else 10.0,
+                    fingerprint=fingerprint,
                 )
             )
 
-        start_time = now - timedelta(minutes=rows + 2)
-
         with transaction.atomic():
-            SensorReading.objects.bulk_create(readings, batch_size=200)
+            existing = set(
+                SensorReading.objects.filter(fingerprint__in=fingerprints).values_list("fingerprint", flat=True)
+            )
+            insert_readings = [r for r in readings if r.fingerprint not in existing]
+            insert_fps = [r.fingerprint for r in insert_readings]
+            SensorReading.objects.bulk_create(insert_readings, batch_size=200, ignore_conflicts=True)
 
             alarm_readings = SensorReading.objects.filter(
-                source_type="synthetic",
+                fingerprint__in=insert_fps,
                 alarm=True,
-                timestamp__gte=start_time,
             )
 
             alert_objs = []
@@ -342,7 +389,7 @@ class DemoDataCreateAPIView(APIView):
             if alert_objs:
                 HazardAlert.objects.bulk_create(alert_objs, batch_size=200)
 
-        return Response({"inserted": len(readings), "alerts": len(alert_objs)}, status=status.HTTP_201_CREATED)
+        return Response({"inserted": len(insert_readings), "alerts": len(alert_objs), "skipped_duplicates": len(readings) - len(insert_readings)}, status=status.HTTP_201_CREATED)
 
 
 class IncidentPdfAPIView(APIView):
@@ -495,6 +542,10 @@ class DashboardSummaryAPIView(APIView):
                 "anomaly_message": anomaly_message,
             }
         )
+
+
+
+
 
 
 

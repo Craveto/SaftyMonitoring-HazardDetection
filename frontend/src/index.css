@@ -48,6 +48,36 @@ h1,h2,h3,h4 { font-family: "Space Grotesk", "IBM Plex Sans", sans-serif; letter-
 .hero { padding: 1.2rem 1.4rem; }
 .hero-title { font-size: 1.65rem; font-weight: 700; }
 .hero-sub { color: var(--text-soft); margin-top: 0.3rem; font-size: 0.92rem; }
+.hero-illustration {
+  width: 150px;
+  max-width: 45vw;
+  height: auto;
+  margin-left: auto;
+}
+.page-illustration {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  border-radius: 16px;
+  background: #f1f6ff;
+  padding: 8px;
+}
+.flow-illustration {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  margin-bottom: 0.35rem;
+}
+.card-icon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  margin-bottom: 0.45rem;
+  border-radius: 12px;
+  background: #eef4ff;
+  padding: 8px;
+}
+
 
 .steps-btn {
   display: inline-flex;
@@ -360,5 +390,67 @@ chip-count {
 .filter-group {
   display: grid;
   gap: 0.35rem;
+}
+
+
+
+
+
+.quick-toggle-btn {
+  border: 1px solid #1a6ad9;
+  background: linear-gradient(135deg, #1a6ad9, #0e4fa8);
+  color: #ffffff;
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+  box-shadow: 0 12px 24px -18px rgba(14, 79, 168, 0.7);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+.quick-toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 26px -18px rgba(14, 79, 168, 0.8);
+  filter: brightness(1.05);
+}
+
+
+.alert-row {
+  background: #fff1f2;
+  animation: pulseAlert 1.6s ease-in-out infinite;
+}
+.alert-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.alert-pill-critical {
+  color: #fff;
+  background: #dc2626;
+  box-shadow: 0 8px 16px -10px rgba(220, 38, 38, 0.8);
+}
+.alert-pill-clear {
+  color: #0f6b3b;
+  background: #dcfce7;
+}
+@keyframes pulseAlert {
+  0% { box-shadow: inset 0 0 0 0 rgba(220, 38, 38, 0.15); }
+  70% { box-shadow: inset 0 0 0 8px rgba(220, 38, 38, 0); }
+  100% { box-shadow: inset 0 0 0 0 rgba(220, 38, 38, 0); }
+}
+
+
+.chart-scroll {
+  overflow-x: auto;
+}
+.chart-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.chart-scroll::-webkit-scrollbar-thumb {
+  background: #cfe0ff;
+  border-radius: 999px;
 }
 

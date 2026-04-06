@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/client";
+import iconAlerts from "../assets/icon-alerts.svg";
 import { getCache, setCache } from "../api/cache";
 const BackIcon = () => (
   <svg className="back-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
@@ -150,6 +151,7 @@ export default function AlertsPage() {
           <h2 className="text-2xl font-semibold">Hazard Alerts</h2>
           <p className="text-sm text-slate-600 mt-1">Monitor, acknowledge, and resolve alerts.</p>
         </div>
+        <img className="page-illustration ml-auto" src={iconAlerts} alt="Alerts overview" />
       </div>
 
       {toast && <div className="mb-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">{toast}</div>}
