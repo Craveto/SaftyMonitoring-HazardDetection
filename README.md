@@ -25,20 +25,20 @@ Industrial safety teams need a single place to ingest sensor data, detect hazard
 Add screenshots here for future reference:
 
 **Landing / Dashboard**
-![Dashboard](image.png)
+![Dashboard](/images/image.png)
 
 **Add Sensor Reading**
-![Add Sensor](image-2.png)
+![Add Sensor](/images/image-2.png)
 
 
 **Upload CSV**
-![Upload CSV](image-3.png)
+![Upload CSV](/images/image-3.png)
 
 **Alerts**
-![Alerts](image-4.png)
+![Alerts](/images/image-4.png)
 
 **Incidents + CAPA**
-![Incidents](image-5.png)
+![Incidents](/images/image-5.png)
 
 
 ---
